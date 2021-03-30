@@ -58,18 +58,18 @@ favRouter.route('/')
         })
 
     })
-    .put((res, req, next) => {
+    .put((req, res, next) => {
         res.statusCode = 403;
-        res.end('PUT operation not supported on /favourite/' + req.params.dishId);
+        res.end('get operation not supported on /favourite/');
     })
-    .delete((res, req, next) => {
-        Favorites.findOneAndRemove({ user: req.user._id })
-            .then((resp) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(resp);
-            }, (err) => next(err))
-            .catch((err) => next(err));
+    .delete(authenticate.verifyUser,(req, res, next) => {
+        Favorites.findOneAndRemove({user:req.user._id})
+        .then((resp) => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(resp);
+        }, (err) => next(err))
+        .catch((err) => next(err));    
     });
 favRouter.route('/:dishId')
     .get((req, res, next) => {
