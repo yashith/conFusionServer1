@@ -12,12 +12,12 @@ favRouter.use(bodyParser.json());
 
 favRouter.route('/')
     .get(authenticate.verifyUser, (req, res, next) => {
-        Favorites.findOne({ user: req.user._id }, (err, fav) => {
+        Favorites.findOne({ user: req.user._id }).populate('user').populate('dishes').exec((err, fav)=>{
+            
             if (err) {
                 return next(err);
             }
             else if (fav != null) {
-                // populate('user')
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.json(fav);
@@ -107,5 +107,13 @@ favRouter.route('/:dishId')
         })
 
     })
+    // .delete(authenticate.verifyUser,(req,res,next)=>{
+    //     Favorites.findOne({ user: req.user._id },(err,fav)=>{
+    //         if(err){
+    //             return next(err)
+    //         }
+    //         else if(fav.dishes)
+    //     })
+    // })
 
 module.exports = favRouter;
