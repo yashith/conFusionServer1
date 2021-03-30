@@ -12,7 +12,7 @@ favRouter.use(bodyParser.json());
 
 favRouter.route('/')
     .get(authenticate.verifyUser, (req, res, next) => {
-        Favorites.findOne({ user: req.user._id }).populate('user').exec((err, fav) => {
+        Favorites.findOne({ user: req.user._id }).populate('user').populate('dishes').exec((err, fav) => {
 
             if (err) {
                 return next(err);
@@ -35,18 +35,27 @@ favRouter.route('/')
                 return next(err)
             }
             else if (fav != null) {
-                fav.dishes.push(req.body)
+                for(let i=0;i<req.body.length;i++){
+                    if(fav.dishes.indexOf(req.body[i]._id)===-1){
+                        fav.dishes.push(req.body[i])
+                    }
+                    else{
+                        console.log('Dish exist')
+                    }
+                    
+                }
+                
                 fav.save()
                     .then((fav) => {
                         res.statusCode = 200;
                         res.setHeader('Content-Type', 'application/json');
                         res.json(fav);
-                    })
+                    })            
             }
             else {
                 favo = {
                     user: req.user._id,
-                    dishes: [req.body]
+                    dishes: req.body
                 }
                 Favorites.create(favo)
                     .then((fav) => {
@@ -82,7 +91,13 @@ favRouter.route('/:dishId')
                 return next(err)
             }
             else if (fav != null) {
-                fav.dishes.push(req.params.dishId)
+                // fav.dishes.push(req.params.dishId)
+                if(fav.dishes.indexOf(req.body[i]._id)===-1){
+                    fav.dishes.push(req.body[i])
+                }
+                else{
+                    console.log('Dish exist')
+                }
                 fav.save()
                     .then((fav) => {
                         res.statusCode = 200;
@@ -106,6 +121,10 @@ favRouter.route('/:dishId')
 
         })
 
+    })
+    .put((req, res, next) => {
+        res.statusCode = 403;
+        res.end('get operation not supported on /favourite/'+req.params.dishId);
     })
     .delete(authenticate.verifyUser, (req, res, next) => {
         Favorites.findOneAndUpdate({ user: req.user._id }, { $pull: { dishes: req.params.dishId } }, (err, fav) => {
